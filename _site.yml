@@ -1,0 +1,19 @@
+name: "Dolt and R"
+navbar:
+  left:
+    - text: "Dolt & R"
+      href: index.html
+  right: 
+    - icon: fas fa-home
+      href: https://kkmann.github.io/
+    - icon: fab fa-twitter
+      href: https://twitter.com/kevin_kunzmann
+    - icon: fa-envelope fa-lg
+      href: mailto:<kevin.kunzmann@mrc-bsu.cam.ac.uk>
+    - icon: fab fa-github
+      href: https://github.com/kkmann/dolt-and-r
+output:
+  html_document:
+    theme: flatly
+
+exclude: [".github", "Makefile", "renv.lock", "renv", "ip-to-country"]

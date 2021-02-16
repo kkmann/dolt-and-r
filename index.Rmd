@@ -1,0 +1,122 @@
+---
+title: "Dolt & R"
+author: "Kevin Kunzmann"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+## What is Dolt?
+
+[Dolt](https://github.com/dolthub/dolt) is 'git for data', a SQL database that
+supports common version control operations (clone, merge, etc.).
+This document is adapted from the [dolt documentaion](https://docs.dolthub.com/getting-started/reading-from-dolt#r).
+
+
+## Querying a local Dolt DB
+
+Since dolt is (also) an SQL data base, 
+we can connect a local dolt data base to R using the MySQL connector. 
+
+```{r define-connection}
+con <- DBI::dbConnect(
+	RMySQL::MySQL(),
+	dbname = 'ip_to_country',
+	host = '127.0.0.1',
+	port = 3306,
+	user = 'root'
+)
+```
+
+Let's see what we have in store:
+
+```{r see-what-we-have}
+DBI::dbListTables(con)
+```
+
+We could now continue using the `DBI` package, but even better, this means that
+that `dbplyr` is supported out of the box (at least or reading data)!
+This allows us to use standard `dplyr` verbs to construct a SQL query against the
+data base, e.g.
+
+```{r}
+library(dbplyr)
+library(dplyr)
+
+query <- dplyr::tbl(con, "IPv6ToCountry") %>% 
+	filter(
+		Registry == "iana",
+		CountryCode2Letter  == "ZZ",
+		AssignedDate == 838857600
+	)
+
+show_query(query)
+```
+
+The usual lazy behavior of remote queries works
+
+```{r}
+query
+```
+
+... just as explicit collection
+
+```{r}
+collect(query)
+```
+
+Of course, any remotely hosted dolt DB can be queried just as above by defining
+the correct connection.
+
+
+
+## Querying a DoltHub DB
+
+The above approach requires a running dolt server and cloning the DB of interest.
+A more direct route is the [DoltHub API](https://docs.dolthub.com/getting-started/dolthub#api-alpha) 
+which is still in alpha.
+Unfortunately, we cannot specify a DoltHub repository as valid `DBI` connection
+the SQL query thus has to be entered manually.
+Since we already constructed the query earlier, let's just reuse it.
+
+```{r}
+str_sql <- query %>% 
+	show_query() %>% 
+	capture.output() %>% 
+	{paste(.[2:length(.)], collapse = " ")}
+```
+
+First we need to  build the API query, then we query DoltHub and parse the
+json response object into an R data frame (tibble).
+
+```{r}
+library(glue)
+
+owner <- "dolthub" 
+repo <- "ip-to-country"
+branch <- "master"
+url <- glue("https://www.dolthub.com/api/v1alpha1/{owner}/{repo}/{branch}")
+
+httr::GET(url, query = list(q = str_sql)) %>% 
+	httr::content() %>% 
+	{.$rows} %>% 
+	jsonlite::toJSON() %>% 
+	jsonlite::fromJSON() %>% 
+	as_tibble() %>% 
+	mutate_all(as.character)
+```
+
+Obviously, the entire process is still a bit rough around the edges and it would
+be nice to have a `DBI` driver for DoltHub remotes directly - but hey, at least it works!
+
+
+## Session Info
+
+```{r}
+sessionInfo()
+```

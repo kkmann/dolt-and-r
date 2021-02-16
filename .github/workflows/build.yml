@@ -1,0 +1,55 @@
+name: build & deploy
+
+on: 
+  push:
+    branches: main	
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+        r: ['release']
+        rspm: ["https://packagemanager.rstudio.com/cran/__linux__/focal/latest"]
+    env:
+      RENV_PATHS_ROOT: ~/.local/share/renv
+    steps:
+      - name: check out repository
+        uses: actions/checkout@v2
+      - name: install system dependencies
+        run: |
+          sudo apt install libcurl4-openssl-dev libssl-dev libxml2-dev libmariadbclient-dev
+      - name: install dolt
+        run: |
+          sudo bash -c 'curl -L https://github.com/dolthub/dolt/releases/latest/download/install.sh | sudo bash'
+      - name: install R
+        uses: r-lib/actions/setup-r@master
+        with:
+          r-version: ${{ matrix.config.r }}
+      - name: install pandoc 
+        uses: r-lib/actions/setup-pandoc@master
+      - name: cache R packages
+        uses: actions/cache@v1
+        with:
+          path: ${{ env.RENV_PATHS_ROOT }}
+          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-renv-
+      - name: restore packages
+        shell: Rscript {0}
+        run: |
+          if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+          renv::restore()
+      - name: build site
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          make all
+      - name: deploy to gh-pages
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: _site # The folder the action should deploy.
+          CLEAN: true # Automatically remove deleted files from the deploy branch
