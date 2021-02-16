@@ -333,6 +333,14 @@ $(document).ready(function () {
 <h2>What is Dolt?</h2>
 <p><a href="https://github.com/dolthub/dolt">Dolt</a> is ‘git for data’, a SQL database that supports common version control operations (clone, merge, etc.). This document is adapted from the <a href="https://docs.dolthub.com/getting-started/reading-from-dolt#r">dolt documentaion</a>.</p>
 </div>
+<div id="setting-the-scene" class="section level2">
+<h2>Setting the scene</h2>
+<p>We start by cloning an example dolt data base …</p>
+<pre class="r"><code>system(&quot;/usr/local/bin/dolt clone dolthub/ip-to-country&quot;)</code></pre>
+<p>… and serving it on a local server</p>
+<pre class="r"><code>system(&quot;(cd ip-to-country; /usr/local/bin/dolt sql-server &amp;)&quot;)</code></pre>
+<p>Now we are ready to interact with the data base using R.</p>
+</div>
 <div id="querying-a-local-dolt-db" class="section level2">
 <h2>Querying a local Dolt DB</h2>
 <p>Since dolt is (also) an SQL data base, we can connect a local dolt data base to R using the MySQL connector.</p>
@@ -401,9 +409,9 @@ show_query(query)</code></pre>
 ##  5 2001:4e00::-2001:4fff:ffff:ffff:ffff… ZZ                iana        838857600
 ##  6 2001:6000::-2001:7fff:ffff:ffff:ffff… ZZ                iana        838857600
 ##  7 2001:c000::-2001:ffff:ffff:ffff:ffff… ZZ                iana        838857600
-##  8 2610:1000::-2610:1fff:ffff:ffff:ffff… ZZ                iana        838857600
-##  9 2610:2000::-2610:3fff:ffff:ffff:ffff… ZZ                iana        838857600
-## 10 2610:200::-2610:3ff:ffff:ffff:ffff:f… ZZ                iana        838857600
+##  8 2003:4000::-2003:7fff:ffff:ffff:ffff… ZZ                iana        838857600
+##  9 2003:8000::-2003:ffff:ffff:ffff:ffff… ZZ                iana        838857600
+## 10 2004::-2007:ffff:ffff:ffff:ffff:ffff… ZZ                iana        838857600
 ## # … with 70 more rows</code></pre>
 <p>Of course, any remotely hosted dolt DB can be queried just as above by defining the correct connection.</p>
 </div>
