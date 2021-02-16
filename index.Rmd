@@ -18,6 +18,25 @@ supports common version control operations (clone, merge, etc.).
 This document is adapted from the [dolt documentaion](https://docs.dolthub.com/getting-started/reading-from-dolt#r).
 
 
+
+## Setting the scene
+
+We start by cloning an example dolt data base ... 
+
+```{r}
+system("/usr/local/bin/dolt clone dolthub/ip-to-country")
+```
+
+... and serving it on a local server
+
+```{r}
+system("(cd ip-to-country; /usr/local/bin/dolt sql-server &)")
+```
+
+Now we are ready to interact with the data base using R.
+
+
+
 ## Querying a local Dolt DB
 
 Since dolt is (also) an SQL data base, 
